@@ -35,6 +35,30 @@ public class LSTMCell extends Cell {
         this.forgetGateMemory = 0;
     }
 
+    public LSTMCell(Layer layer, int cellIndex, int inputAmount, double[][] weights){
+        super(layer, cellIndex);
+        this.connection = new Connection[inputAmount];
+        this.recurrentConnection = new Connection[layer.getCell().length];
+        for (int i = 0; i < connection.length; i++) {
+            if(weights[0][i] == -100){
+                connection[i] = new Connection(ProcessorCell.getRandomWeight());
+            }else{
+                connection[i] = new Connection(weights[0][i]);
+            }
+        }
+        for (int i = 0; i < recurrentConnection.length; i++) {
+            if(weights[1][i] == -100){
+                recurrentConnection[i] = new Connection(ProcessorCell.getRandomWeight());
+            }else{
+                recurrentConnection[i] = new Connection(weights[1][i]);
+            }
+        }
+        this.inputGate = new Gate(inputAmount, layer.getCell().length, weights[2], weights[3]);
+        this.forgetGate = new Gate(inputAmount, layer.getCell().length, weights[4], weights[5]);
+        this.outputGate = new Gate(inputAmount, layer.getCell().length, weights[6], weights[7]);
+        this.forgetGateMemory = 0;
+    }
+
     public void feedForward(){
         double solution = 0;
         double sum = 0;

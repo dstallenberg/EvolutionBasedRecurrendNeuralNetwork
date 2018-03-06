@@ -1,11 +1,14 @@
 package com.dimitri.ebrnn.neural;
 
 import com.dimitri.ebrnn.neural.cells.HiddenCell;
+import com.dimitri.ebrnn.neural.cells.lstm.LSTMCell;
 import com.dimitri.ebrnn.neural.layers.HiddenLayer;
 import com.dimitri.ebrnn.neural.layers.InputLayer;
+import com.dimitri.ebrnn.neural.layers.LSTMLayer;
 import com.dimitri.ebrnn.neural.layers.Layer;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Neural net Head Class API
@@ -72,7 +75,7 @@ public class Net {
             layer = new Layer[topology.length];
             layer[0] = new InputLayer(this, topology[0]);
             for (int i = 1; i < topology.length; i++) {
-                layer[i] = new HiddenLayer(this, i, topology[i]);
+                layer[i] = new LSTMLayer(this, i, topology[i]);
             }
         }else{
             throw new IllegalArgumentException("Nets need at least 2 layers");
@@ -97,7 +100,7 @@ public class Net {
             layer = new Layer[topology.length];
             layer[0] = new InputLayer(this, topology[0]);
             for (int i = 1; i < topology.length; i++) {
-                layer[i] = new HiddenLayer(this, i, io.getLayerWeights(i));
+                layer[i] = new LSTMLayer(this, i, io.getLayerWeights(i));
             }
         }else{
             throw new IllegalArgumentException("Nets need at least 2 layers");
@@ -120,14 +123,211 @@ public class Net {
             layer = new Layer[topology.length];
             layer[0] = new InputLayer(this, topology[0]);
             for (int i = 1; i < topology.length; i++) {
-                layer[i] = new HiddenLayer(this, i, weight[i]);
+                layer[i] = new LSTMLayer(this, i, weight[i]);
             }
         }else{
             throw new IllegalArgumentException("Nets need at least 2 layers");
         }
     }
 
+    public Net mutate(int oneInEvery_Neuron, int oneInEvery_Layer, int oneInEvery_Topo) {
+        double[][][][] weights = getWeights();
+        Random random = new Random();
+        for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[i].length; j++) {
+                for (int k = 0; k < weights[i][j].length; k++) {
+                    for (int l = 0; l < weights[i][j][k].length; l++) {
+                        int mutate = random.nextInt(oneInEvery_Neuron);
+                        if(mutate == 0){
+                            double delta = (random.nextDouble()*2-1)*0.01;
+                            weights[i][j][k][l] = weights[i][j][k][l]+delta;
+                        }
+                    }
+                }
+            }
+        }
 
+        int[] topology = mutateLayers(getTopology(), oneInEvery_Topo); // chance 0.002
+        topology = mutateNeurons(topology, oneInEvery_Layer); // chance 0.001 per layer
+
+        //Set new neuron weights!!>!!>
+        double[][][][] newWeights = new double[topology.length][][][];
+        for (int layer = 0; layer < topology.length; layer++) {
+            newWeights[layer] = new double[topology[layer]][][];
+            for (int neuron = 0; neuron < topology[layer]; neuron++) {
+                newWeights[layer][neuron] = new double[8][];
+                for (int gate = 0; gate < 8; gate++) {
+                    if(gate%2 == 0){
+                        if(layer > 0){
+                            newWeights[layer][neuron][gate] = new double[topology[layer-1]];
+                            for (int weight = 0; weight < topology[layer-1]; weight++) {
+                                if(newWeights.length == weights.length){
+                                    if(newWeights[layer].length <= weights[layer].length){
+                                        newWeights[layer][neuron][gate][weight] = weights[layer][neuron][gate][weight];
+                                    }else{
+                                        if(neuron >= weights[layer].length){
+                                            newWeights[layer][neuron][gate][weight] = -100;
+                                        }else{
+                                            newWeights[layer][neuron][gate][weight] = weights[layer][neuron][gate][weight];
+                                        }
+                                    }
+                                }else if(newWeights.length < weights.length){
+                                    if(newWeights[layer].length == weights[layer].length){
+                                        newWeights[layer][neuron][gate][weight] = weights[layer][neuron][gate][weight];
+                                    }else{
+                                        if(newWeights[layer].length == weights[layer+1].length){
+                                            newWeights[layer][neuron][gate][weight] = weights[layer+1][neuron][gate][weight];
+                                        }else{
+                                            if(newWeights[layer].length < weights[layer].length){
+                                                newWeights[layer][neuron][gate][weight] = weights[layer][neuron][gate][weight];
+                                            }else{
+                                                if(neuron >= weights[layer].length){
+                                                    newWeights[layer][neuron][gate][weight] = -100;
+                                                }else{
+                                                    newWeights[layer][neuron][gate][weight] = weights[layer][neuron][gate][weight];
+                                                }
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    if(newWeights[layer].length == weights[layer].length){
+                                        newWeights[layer][neuron][gate][weight] = weights[layer][neuron][gate][weight];
+                                    }else{
+                                        newWeights[layer][neuron][gate][weight] = -100;
+                                    }
+                                }
+                            }
+                        }else{
+                            newWeights[layer][neuron][gate] = new double[0];
+                        }
+                    }else{
+                        if(layer > 0){
+                            newWeights[layer][neuron][gate] = new double[topology[layer]];
+                            for (int recurrentWeights = 0; recurrentWeights < topology[layer]; recurrentWeights++) {
+
+                            }
+                        }else{
+                            newWeights[layer][neuron][gate] = new double[0];
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
+        return new Net(weights);
+    }
+
+    public int[] mutateNeurons(int[] topology, int oneInEvery_Layer){
+        //Chance to get more neurons per layer = 0.001
+        Random random = new Random();
+        int[] newTopology = new int[topology.length];
+        for (int i = 1; i < topology.length; i++) {
+            int choice = random.nextInt(oneInEvery_Layer);
+            if(choice == 0){
+                int delta = random.nextInt(10)+1;
+                if(delta > 7){
+                    delta = 2;
+                }else{
+                    delta = 1;
+                }
+                int bool = random.nextInt(2);
+                if(bool == 1){
+                    newTopology[i] = topology[i]+delta;
+                }else{
+                    newTopology[i] = topology[i]-delta;
+                    if(newTopology[i] <= 0){
+                        newTopology[i] = 1;
+                    }
+                }
+            }else{
+                newTopology[i] = topology[i];
+            }
+        }
+        return newTopology;
+    }
+
+    public int[] mutateLayers(int[] topology, int oneInEvery_Topo){
+        //Chance to get more layers = 0.001
+        //Chance to get less layers = 0.001
+        Random random = new Random();
+        int choice = random.nextInt(oneInEvery_Topo);
+        int[] newTopology;
+        if(choice == 0){
+            newTopology = new int[topology.length+1];
+            int place = random.nextInt(topology.length);
+            int newLayerLength = random.nextInt(topology[place]+2)+1;
+            for (int i = 0; i < newTopology.length; i++) {
+                if(place < i){
+                    newTopology[i] = topology[i-1];
+                }else if(place == i){
+                    newTopology[i] = newLayerLength;
+                }else{
+                    newTopology[i] = topology[i];
+                }
+            }
+        }else if(choice == 1){
+            if(topology.length-1 > 1){
+                newTopology = new int[topology.length-1];
+                int place = random.nextInt(topology.length);
+                for (int i = 0; i < newTopology.length; i++) {
+                    if(place <= i){
+                        newTopology[i] = topology[i+1];
+                    }else{
+                        newTopology[i] = topology[i];
+                    }
+                }
+            }else{
+                newTopology = topology;
+            }
+        }else{
+            newTopology = topology;
+        }
+
+        return newTopology;
+    }
+
+    public double[][][][] getWeights(){
+        double[][][][] weights = new double[getLayer().length][][][];
+        for (int layer = 0; layer < getLayer().length; layer++) {
+            weights[layer] = new double[getLayer(layer).getCell().length][][];
+            for (int neuron = 0; neuron < getLayer(layer).getCell().length; neuron++) {
+                weights[layer][neuron] = new double[8][];
+                for (int gate = 0; gate < 8; gate+=2) {
+                    if(gate%2 == 0){
+                        weights[layer][neuron][gate] = new double[((LSTMCell)getLayer(layer).getCell(neuron)).getConnection().length];
+                        for (int weight = 0; weight < ((LSTMCell)getLayer(layer).getCell(neuron)).getConnection().length; weight++) {
+                            if(gate == 0){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getConnection(weight).getWeight();
+                            }else if(gate == 2){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getInputGate().getConnection(weight).getWeight();
+                            }else if(gate == 4){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getForgetGate().getConnection(weight).getWeight();
+                            }else if(gate == 6){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getOutputGate().getConnection(weight).getWeight();
+                            }
+                        }
+                    }else{
+                        weights[layer][neuron][gate] = new double[((LSTMCell)getLayer(layer).getCell(neuron)).getRecurrentConnection().length];
+                        for (int weight = 0; weight < ((LSTMCell)getLayer(layer).getCell(neuron)).getRecurrentConnection().length; weight++) {
+                            if(gate == 1){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getRecurrentConnection(weight).getWeight();
+                            }else if(gate == 3){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getInputGate().getRecurrentConnection(weight).getWeight();
+                            }else if(gate == 5){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getForgetGate().getRecurrentConnection(weight).getWeight();
+                            }else if(gate == 7){
+                                weights[layer][neuron][gate][weight] = ((LSTMCell)getLayer(layer).getCell(neuron)).getOutputGate().getRecurrentConnection(weight).getWeight();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return weights;
+    }
 
     /**
      * This method feeds the input array into the input cells. <br>
@@ -142,7 +342,7 @@ public class Net {
             }
             for (int i = 1; i < layer.length; i++) {
                 for (int j = 0; j < layer[i].getCell().length; j++) {
-                    ((HiddenCell)layer[i].getCell(j)).feedForward();
+                    ((LSTMCell)layer[i].getCell(j)).feedForward();
                 }
             }
             for (int i = 0; i < layer[layer.length-1].getCell().length; i++) {

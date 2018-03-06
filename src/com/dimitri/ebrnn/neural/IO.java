@@ -1,7 +1,5 @@
 package com.dimitri.ebrnn.neural;
 
-import com.dimitri.ebrnn.neural.cells.HiddenCell;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,7 +9,7 @@ import java.util.Scanner;
 public class IO {
 
     private String filePath;
-    private double[][][] weights;
+    private double[][][][] weights;
 
     public IO(String filePath){
         this.filePath = filePath;
@@ -24,6 +22,7 @@ public class IO {
 
         int layer = 0;
         int neuron = 0;
+        int gate = 0;
         int weight = 0;
 
         if(scanner.hasNext()){
@@ -33,15 +32,20 @@ public class IO {
                 while(!current.equals("Layer:") && scanner.hasNext()){
                     current = scanner.next();
                     while(!current.equals("Neuron:") && !current.equals("Layer:")){
-                        weights[layer][neuron][weight] = Double.parseDouble(current);
-                        weight++;
-                        if(scanner.hasNext()){
-                            current = scanner.next();
-                        }else{
-                            break;
+                        current = scanner.next();
+                        while(!current.equals("Gate:") && !current.equals("Neuron:") && !current.equals("Layer:")){
+                            weights[layer][neuron][gate][weight] = Double.parseDouble(current);
+                            weight++;
+                            if(scanner.hasNext()){
+                                current = scanner.next();
+                            }else{
+                                break;
+                            }
                         }
+                        weight = 0;
+                        gate++;
                     }
-                    weight = 0;
+                    gate = 0;
                     neuron++;
                 }
                 neuron = 0;
@@ -54,24 +58,59 @@ public class IO {
 
     public void Write(Net net) throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(filePath);
-        printWriter.print("Layer:\n");
-        for (int i = 0; i < net.getLayer(0).getCell().length; i++) {
-            printWriter.print("\tNeuron:\n");
-        }
+        double[][][][] weights = getWeights();
 
-        for (int i = 1; i < net.getLayer().length; i++) {
+        for (int i = 0; i < weights.length; i++) {
             printWriter.print("Layer:\n");
-            for (int j = 0; j < net.getLayer(i).getCell().length; j++) {
+            for (int j = 0; j < weights[i].length; j++) {
                 printWriter.print("\tNeuron:\n");
-                for (int k = 0; k < ((HiddenCell)net.getLayer(i).getCell(j)).getConnection().length; k++) {
-                    printWriter.print("\t\t" + ((HiddenCell)net.getLayer(i).getCell(j)).getConnection(k).getWeight() + "\n");
+                for (int k = 0; k < weights[i][j].length; k++) {
+                    printWriter.print("\tGate:\n");
+                    for (int l = 0; l < weights[i][j][k].length; l++) {
+                        printWriter.print("\t\t" + weights[i][j][k][l] + "\n");
+                    }
                 }
             }
         }
+
+
+
+//        for (int layer = 0; layer < net.getLayer().length; layer++) {
+//            printWriter.print("Layer:\n");
+//            for (int neuron = 0; neuron < net.getLayer(layer).getCell().length; neuron++) {
+//                printWriter.print("\tNeuron:\n");
+//                for (int gate = 0; gate < 4; gate++) {
+//                    printWriter.print("\tGate:\n");
+//                    for (int weight = 0; weight < ((LSTMCell)net.getLayer(layer).getCell(neuron)).getConnection().length; weight++) {
+//                        if(gate == 0){
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getConnection(weight).getWeight() + "\n");
+//                        }else if(gate == 1){
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getInputGate().getConnection(weight).getWeight() + "\n");
+//                        }else if(gate == 2){
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getForgetGate().getConnection(weight).getWeight() + "\n");
+//                        }else{
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getOutputGate().getConnection(weight).getWeight() + "\n");
+//                        }
+//                    }
+//                    for (int recurrentWeight = 0; recurrentWeight < ((LSTMCell)net.getLayer(layer).getCell(neuron)).getRecurrentConnection().length; recurrentWeight++) {
+//                        if(gate == 0){
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getRecurrentConnection(recurrentWeight).getWeight() + "\n");
+//                        }else if(gate == 1){
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getInputGate().getRecurrentConnection(recurrentWeight).getWeight() + "\n");
+//                        }else if(gate == 2){
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getForgetGate().getRecurrentConnection(recurrentWeight).getWeight() + "\n");
+//                        }else{
+//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getOutputGate().getRecurrentConnection(recurrentWeight).getWeight() + "\n");
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
         printWriter.close();
     }
 
-    public double[][][] count(File file) throws FileNotFoundException {
+    public double[][][][] count(File file) throws FileNotFoundException {
         Scanner scanner = new Scanner(file);
         String current;
         int layers = 0;
@@ -81,7 +120,7 @@ public class IO {
                 layers++;
             }
         }
-        double[][][] weights = new double[layers][][];
+        double[][][][] weights = new double[layers][][][];
 
         scanner = new Scanner(file);
         current = scanner.next();
@@ -100,36 +139,39 @@ public class IO {
                 }
             }
 
-            weights[i] = new double[neurons][];
+            weights[i] = new double[neurons][][];
         }
 
         scanner = new Scanner(file);
         current = scanner.next();
-        for (int i = 0; i < weights.length; i++) {
+        for (int i = 0; i < weights.length;i++) {
             current = scanner.next();
             for (int j = 0; j < weights[i].length; j++) {
                 current = scanner.next();
-                int weight = 0;
-                while(!current.equals("Neuron:") && !current.equals("Layer:")) {
-                    weight++;
-                    if (scanner.hasNext()) {
-                        current = scanner.next();
-                    } else {
-                        break;
+                weights[i][j] = new double[8][]; // (3 gates + 1 input)*2  (recurrent and normal)
+                for (int k = 0; k < weights[i][j].length; k++) {
+                    current = scanner.next();
+                    int weight = 0;
+                    while(!current.equals("Neuron:") && !current.equals("Layer:")) {
+                        weight++;
+                        if (scanner.hasNext()) {
+                            current = scanner.next();
+                        } else {
+                            break;
+                        }
                     }
+                    weights[i][j][k] = new double[weight];
                 }
-                weights[i][j] = new double[weight];
             }
         }
-
         return weights;
     }
 
-    public double[][] getLayerWeights(int layerIndex) {
+    public double[][][] getLayerWeights(int layerIndex) {
         return weights[layerIndex];
     }
 
-    public double[][][] getWeights() {
+    public double[][][][] getWeights() {
         return weights;
     }
 

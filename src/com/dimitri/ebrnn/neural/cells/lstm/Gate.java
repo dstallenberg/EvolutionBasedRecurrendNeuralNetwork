@@ -20,6 +20,25 @@ public class Gate {
         }
     }
 
+    public Gate(int inputAmount, int recurrentAmount, double[] weights, double[] recurrentWeights){
+        this.connection = new Connection[inputAmount];
+        this.recurrentConnection = new Connection[recurrentAmount];
+        for (int i = 0; i < connection.length; i++) {
+            if(weights[i] == -100){
+                connection[i] = new Connection(ProcessorCell.getRandomWeight());
+            }else{
+                connection[i] = new Connection(weights[i]);
+            }
+        }
+        for (int i = 0; i < recurrentConnection.length; i++) {
+            if(recurrentWeights[i] == -100){
+                recurrentConnection[i] = new Connection(ProcessorCell.getRandomWeight());
+            }else{
+                recurrentConnection[i] = new Connection(recurrentWeights[i]);
+            }
+        }
+    }
+
     public double feedForward(Layer prev, Layer current){
         double sum = 0;
         //new Data

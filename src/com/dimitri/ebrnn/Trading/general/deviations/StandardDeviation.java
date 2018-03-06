@@ -1,6 +1,6 @@
-package com.dimitri.ebrnn.evolution;
+package com.dimitri.ebrnn.Trading.general.deviations;
 
-import ai.brain.calculations.general.Calc;
+import com.dimitri.ebrnn.Trading.general.Calc;
 
 import java.util.List;
 
@@ -81,7 +81,7 @@ public class StandardDeviation {
         for (int i = 1; i < 30; i++) {
             temp *= -1;
 
-            sum += temp*((Math.pow((current-average), 2*i+1))/((2*i+1)*Math.pow(standardDeviation, 2*i)*Math.pow(2, i)* factorial(i)));
+            sum += temp*((Math.pow((current-average), 2*i+1))/((2*i+1)*Math.pow(standardDeviation, 2*i)*Math.pow(2, i)* Calc.factorial(i)));
         }
         result = (sum * factor) + correction;
         return result;
@@ -106,7 +106,7 @@ public class StandardDeviation {
         for (int i = 1; i < 30; i++) {
             temp *= -1;
 
-            sum += temp*((Math.pow((current-average), 2*i+1))/((2*i+1)*Math.pow(standardDeviation, 2*i)*Math.pow(2, i)*factorial(i)));
+            sum += temp*((Math.pow((current-average), 2*i+1))/((2*i+1)*Math.pow(standardDeviation, 2*i)*Math.pow(2, i)*Calc.factorial(i)));
         }
         result = (sum * factor) + correction;
 
@@ -125,7 +125,7 @@ public class StandardDeviation {
         for (int i = 1; i < 30; i++) {
             temp *= -1;
 
-            sum += temp*((Math.pow((current-average), 2*i+1))/((2*i+1)*Math.pow(standardDeviation, 2*i)*Math.pow(2, i)*factorial(i)));
+            sum += temp*((Math.pow((current-average), 2*i+1))/((2*i+1)*Math.pow(standardDeviation, 2*i)*Math.pow(2, i)*Calc.factorial(i)));
         }
         result -= ((sum * factor) + correction);
 
@@ -138,20 +138,13 @@ public class StandardDeviation {
         double sum = 0;
         for (int i = 0; i < 30; i++) {
             double counter = Math.pow(-1, i)*Math.pow(x, 2*i+1);
-            double denom = factorial(i)*(2*i+1);
+            double denom = Calc.factorial(i)*(2*i+1);
             sum += (counter/denom);
         }
 
         return ((sum * div2sqrtPi)*0.5);
     }
 
-    public double factorial(int val) {
-        int result = 1;
-        for (int i = 1; i <= val; i++) {
-            result *= i;
-        }
-        return result;
-    }
 
     public double getAverage() {
         return average;
