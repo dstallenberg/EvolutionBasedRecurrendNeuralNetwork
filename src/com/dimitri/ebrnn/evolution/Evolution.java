@@ -27,8 +27,9 @@ public class Evolution {
 
     public void update(){
         feed();
-        System.out.println(getAverageProfit());
+        System.out.println("Average Profit: " + getAverageProfit());
         traderNets = makeOffspring();
+        System.out.println("Mutated!");
     }
 
     public void render(Graphics g){
@@ -104,18 +105,23 @@ public class Evolution {
 
     public void feed(){
         ArrayList<TickerDataParser> array = fetchData();
-        for (TraderNet net: traderNets) {
-            net.feed(array);
+
+        for (int i = 0; i < traderNets.size(); i++) {
+            long last = System.nanoTime();
+            System.out.println("NextNet: " + i);
+            traderNets.get(i).feed(array);
+            System.out.println("Net "+ i +" fed! Time: " + (System.nanoTime()-last)/1000000 + "ms");
+            System.out.println("Profit: " + traderNets.get(i).getCurrentProfit());
         }
     }
 
     public void initRandomTraderNets(int inputAmount, int outputAmount, int TraderNetAmount){
         for (int i = 0; i < TraderNetAmount; i++) {
-            int hiddenLayers = random.nextInt(6);
+            int hiddenLayers = random.nextInt(6)+1;
             int[] topology = new int[hiddenLayers+2];
             topology[0] = inputAmount;
             for (int j = 0; j < hiddenLayers; j++) {
-                topology[j+1] = random.nextInt(200)+1;
+                topology[j+1] = random.nextInt(50)+1;
             }
             topology[topology.length-1] = outputAmount;
             traderNets.add(new TraderNet(topology));

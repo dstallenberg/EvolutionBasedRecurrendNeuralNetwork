@@ -26,12 +26,12 @@ public class LSTMLayer extends Layer{
 
 
     @Override
-    public Cell[] getCell() {
-        return new Cell[0];
+    public LSTMCell[] getCell() {
+        return cell;
     }
 
     @Override
     public Cell getCell(int index) {
-        return null;
+        return cell[index];
     }
 }

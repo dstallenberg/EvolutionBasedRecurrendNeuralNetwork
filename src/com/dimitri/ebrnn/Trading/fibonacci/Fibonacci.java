@@ -147,9 +147,9 @@ public class Fibonacci {
         double sellTarget = getSellTarget();
 
         if(sellTarget != 0){
-            results = (sellTarget-candles.get(current).getCurrent())/candles.get(current).getCurrent();
+            results = (sellTarget-candles.get(current-1).getCurrent())/candles.get(current-1).getCurrent();
         }else if(buyTarget != 0){
-            results = (buyTarget-candles.get(current).getCurrent())/candles.get(current).getCurrent();
+            results = (buyTarget-candles.get(current-1).getCurrent())/candles.get(current-1).getCurrent();
         }
 
         return results;

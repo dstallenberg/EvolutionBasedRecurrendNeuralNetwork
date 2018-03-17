@@ -101,7 +101,6 @@ public class TraderNet {
                     }
 
                     currentProfit = (((BTC+quantityCoin*candle.getCurrent())-startBTC)/startBTC)*100;
-
                 }
             }
         }
@@ -132,5 +131,25 @@ public class TraderNet {
 
     public double getCurrentProfit() {
         return currentProfit;
+    }
+
+    public Net getNet() {
+        return net;
+    }
+
+    public double getQuantityCoin() {
+        return quantityCoin;
+    }
+
+    public double getBTC() {
+        return BTC;
+    }
+
+    public double getStartBTC() {
+        return startBTC;
+    }
+
+    public Random getRandom() {
+        return random;
     }
 }

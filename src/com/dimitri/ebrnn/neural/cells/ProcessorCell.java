@@ -4,8 +4,17 @@ import java.util.Random;
 
 public class ProcessorCell {
 
+    private static double e = 2.71828182846d;
+
+    public static double ownTanh(double input){
+        double neg = Math.pow(e, 2*input);
+        return (neg-1)/(neg+1);
+    }
+
     public static double tanh(double input){
-        return Math.tanh(input);
+        double neg = Math.pow(e, 2*input);
+        return (neg-1)/(neg+1);
+//        return Math.tanh(input);
     }
 
     public static double derrivativeTanh(double input){

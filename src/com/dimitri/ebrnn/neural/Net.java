@@ -343,6 +343,7 @@ public class Net {
             for (int i = 1; i < layer.length; i++) {
                 for (int j = 0; j < layer[i].getCell().length; j++) {
                     ((LSTMCell)layer[i].getCell(j)).feedForward();
+
                 }
             }
             for (int i = 0; i < layer[layer.length-1].getCell().length; i++) {
