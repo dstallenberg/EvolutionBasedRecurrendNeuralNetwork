@@ -56,7 +56,7 @@ public class IO {
         scanner.close();
     }
 
-    public void Write(Net net) throws FileNotFoundException {
+    public void Write(String filePath, Net net) throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(filePath);
         double[][][][] weights = getWeights();
 

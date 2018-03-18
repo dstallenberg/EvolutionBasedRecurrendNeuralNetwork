@@ -136,6 +136,7 @@ public class Net {
         for (int i = 0; i < weights.length; i++) {
             for (int j = 0; j < weights[i].length; j++) {
                 for (int k = 0; k < weights[i][j].length; k++) {
+
                     for (int l = 0; l < weights[i][j][k].length; l++) {
                         int mutate = random.nextInt(oneInEvery_Neuron);
                         if(mutate == 0){
@@ -214,9 +215,6 @@ public class Net {
             }
         }
 
-
-
-
         return new Net(weights);
     }
 
@@ -291,11 +289,15 @@ public class Net {
 
     public double[][][][] getWeights(){
         double[][][][] weights = new double[getLayer().length][][][];
-        for (int layer = 0; layer < getLayer().length; layer++) {
+        weights[0] = new double[getLayer(0).getCell().length][][];
+        for (int inputNeuron = 0; inputNeuron < weights[0].length; inputNeuron++) {
+            weights[0][inputNeuron] = new double[0][0];
+        }
+        for (int layer = 1; layer < getLayer().length; layer++) {
             weights[layer] = new double[getLayer(layer).getCell().length][][];
             for (int neuron = 0; neuron < getLayer(layer).getCell().length; neuron++) {
                 weights[layer][neuron] = new double[8][];
-                for (int gate = 0; gate < 8; gate+=2) {
+                for (int gate = 0; gate < 8; gate++) {
                     if(gate%2 == 0){
                         weights[layer][neuron][gate] = new double[((LSTMCell)getLayer(layer).getCell(neuron)).getConnection().length];
                         for (int weight = 0; weight < ((LSTMCell)getLayer(layer).getCell(neuron)).getConnection().length; weight++) {
