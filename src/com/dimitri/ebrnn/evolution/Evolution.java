@@ -15,6 +15,8 @@ import java.util.Scanner;
 public class Evolution {
 
     private int TraderNetCount = 0;
+    private int inputAmount;
+    private int outputAmount;
 
     private ArrayList<TraderNet> traderNets;
     private ArrayList<Double> profits;
@@ -22,6 +24,8 @@ public class Evolution {
     private Random random;
 
     public Evolution(int inputAmount, int outputAmount){
+        this.inputAmount = inputAmount;
+        this.outputAmount = outputAmount;
         traderNets = new ArrayList<>();
         profits = new ArrayList<>();
         random = new Random();
@@ -71,12 +75,17 @@ public class Evolution {
     public void makeOffspring(){
         ArrayList<TraderNet> top10 = getBestTraderNets();
         traderNets.removeAll(traderNets);
-
-        for (TraderNet top: top10) {
-            for (int i = 0; i < 10; i++) {
-                traderNets.add(new TraderNet(top.mutate()));
+        if(top10.size() == 0){
+            initRandomTraderNets(8, 2, 100);
+        }else{
+            for (TraderNet top: top10) {
+                for (int i = 0; i < Math.floor(100d/top10.size())-1; i++) {
+                    traderNets.add(new TraderNet(top.mutate()));
+                }
+                traderNets.add(top);
             }
         }
+
     }
     
     public ArrayList<TraderNet> getBestTraderNets(){
@@ -85,15 +94,16 @@ public class Evolution {
             int index = 0;
             double highest = Integer.MIN_VALUE;
             for (int j = 0; j < traderNets.size(); j++) {
-                if(traderNets.get(j).getCurrentProfit() > highest){
-                    highest = traderNets.get(j).getCurrentProfit();
+                if(traderNets.get(j).getAverageProfit() > highest){
+                    highest = traderNets.get(j).getAverageProfit();
                     index = j;
                 }
             }
-            top10.add(traderNets.get(index));
+            if(traderNets.get(index).getAverageProfit() > 0){
+                top10.add(traderNets.get(index));
+            }
             traderNets.remove(index);
         }
-
         return top10;
     }
 
@@ -125,8 +135,8 @@ public class Evolution {
             System.out.println("NextNet: " + i);
             traderNets.get(i).feed(array);
             System.out.println("Net "+ i +" fed! Time: " + (System.nanoTime()-last)/1000000 + " ms");
-            System.out.println("Profit: " + traderNets.get(i).getCurrentProfit());
-            profits.add(i, traderNets.get(i).getCurrentProfit());
+            System.out.println("Profit: " + traderNets.get(i).getAverageProfit());
+            profits.add(i, traderNets.get(i).getAverageProfit());
 //            try {
 //                traderNets.get(i).getNet().getIo().Write("weights/"+ i +".txt", traderNets.get(i).getNet());
 //            } catch (FileNotFoundException e) {

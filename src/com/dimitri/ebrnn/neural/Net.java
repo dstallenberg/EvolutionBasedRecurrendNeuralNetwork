@@ -149,8 +149,9 @@ public class Net {
         }
 
         int[] topology = getTopology();
-//        topology = mutateLayers(topology, oneInEvery_Topo);   // chance 0.002 for change
-//        topology = mutateNeurons(topology, oneInEvery_Layer); // chance 0.001 per layer
+        /**
+        topology = mutateLayers(topology, oneInEvery_Topo);   // chance 0.002 for change
+        topology = mutateNeurons(topology, oneInEvery_Layer); // chance 0.001 per layer
 
         //Set new neuron weights!!>!!>
         double[][][][] newWeights = new double[topology.length][][][];
@@ -215,7 +216,7 @@ public class Net {
                 }
             }
         }
-
+*/
         return new Net(weights);
     }
 
