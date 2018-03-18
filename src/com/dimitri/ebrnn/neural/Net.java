@@ -148,8 +148,9 @@ public class Net {
             }
         }
 
-        int[] topology = mutateLayers(getTopology(), oneInEvery_Topo); // chance 0.002
-        topology = mutateNeurons(topology, oneInEvery_Layer); // chance 0.001 per layer
+        int[] topology = getTopology();
+//        topology = mutateLayers(topology, oneInEvery_Topo);   // chance 0.002 for change
+//        topology = mutateNeurons(topology, oneInEvery_Layer); // chance 0.001 per layer
 
         //Set new neuron weights!!>!!>
         double[][][][] newWeights = new double[topology.length][][][];
@@ -247,6 +248,12 @@ public class Net {
         return newTopology;
     }
 
+    /**
+     * This method mutates the amount of Layers the network has.
+     * @param topology the current Topology.
+     * @param oneInEvery_Topo the chance that a layer gets removed or added.
+     * @return an int array containing the new Topology.
+     */
     public int[] mutateLayers(int[] topology, int oneInEvery_Topo){
         //Chance to get more layers = 0.001
         //Chance to get less layers = 0.001
@@ -287,6 +294,10 @@ public class Net {
         return newTopology;
     }
 
+    /**
+     * This method gathers all the weights for the current network.
+     * @return Multi-Dimension array containing all Weights.
+     */
     public double[][][][] getWeights(){
         double[][][][] weights = new double[getLayer().length][][][];
         weights[0] = new double[getLayer(0).getCell().length][][];

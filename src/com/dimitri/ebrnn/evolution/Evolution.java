@@ -29,20 +29,41 @@ public class Evolution {
     }
 
     public void update(){
+        for (int i = 0; i < 10; i++) {
+            feed();
+            System.out.println("Average Profit: " + getAverageProfit());
+            makeOffspring();
+            System.out.println("Mutated!");
+        }
         feed();
         System.out.println("Average Profit: " + getAverageProfit());
+        save();
+        System.out.println("Saved!");
         makeOffspring();
         System.out.println("Mutated!");
+
     }
 
     public void render(Graphics g){
 
     }
 
+    public void save(){
+        ArrayList<TraderNet> top10 = getBestTraderNets();
+        traderNets.removeAll(traderNets);
+        for (int i = 0; i < top10.size(); i++) {
+            try {
+                top10.get(i).getNet().getIo().Write("weights/"+ i+".txt", top10.get(i).getNet());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public double getAverageProfit(){
         double sum = 0;
         for (int i = 0; i < traderNets.size(); i++) {
-            sum += traderNets.get(i).getCurrentProfit();
+            sum += traderNets.get(i).getAverageProfit();
         }
         return sum/traderNets.size();
     }

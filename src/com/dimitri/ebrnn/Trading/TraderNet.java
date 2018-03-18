@@ -16,6 +16,7 @@ public class TraderNet {
     private Net net;
 
     private double currentProfit;
+    private ArrayList<Double> profits;
     private double quantityCoin;
     private double BTC;
     private double startBTC;
@@ -24,6 +25,7 @@ public class TraderNet {
 
     public TraderNet(int[] topology){
         net = new Net(topology);
+        profits = new ArrayList<>();
         currentProfit = 0;
         quantityCoin = 0;
         BTC = 1;
@@ -33,6 +35,7 @@ public class TraderNet {
 
     public TraderNet(Net net){
         this.net = net;
+        profits = new ArrayList<>();
         currentProfit = 0;
         quantityCoin = 0;
         BTC = 1;
@@ -43,9 +46,15 @@ public class TraderNet {
 
     public void feed(ArrayList<TickerDataParser> array){
         for (TickerDataParser t: array) {
-            double[] prices = t.getFullArray();
-            double[] lows = t.getFullLowArray();
-            double[] highs = t.getFullHighArray();
+
+            currentProfit = 0;
+            quantityCoin = 0;
+            BTC = 1;
+            startBTC = BTC;
+
+            double[] prices = t.getArray(1440);//t.getFullArray();
+            double[] lows = t.getLowArray(1440);//t.getFullLowArray();
+            double[] highs = t.getHighArray(1440);//t.getFullHighArray();
             CCI cci = new CCI();
             MACD macd = new MACD(prices);
             Fibonacci fibonacci = new Fibonacci();
@@ -101,8 +110,12 @@ public class TraderNet {
                     }
 
                     currentProfit = (((BTC+quantityCoin*candle.getCurrent())-startBTC)/startBTC)*100;
+                    if(currentProfit < -100){
+                        break;
+                    }
                 }
             }
+            profits.add(currentProfit);
         }
     }
 
@@ -116,11 +129,13 @@ public class TraderNet {
 
         quantityCoin = quantity;
 
-        BTC = BTC-(quantity*price);
+//        BTC = BTC-(quantity*price);
+        BTC = BTC-((quantity*price)+quantity*price*0.02d);
     }
 
     public void sell(double price){
-        BTC = BTC + (price*quantityCoin);
+//        BTC = BTC + (price*quantityCoin);
+        BTC = BTC + (price*quantityCoin*0.98d);
         quantityCoin = 0;
     }
 
@@ -131,6 +146,14 @@ public class TraderNet {
 
     public double getCurrentProfit() {
         return currentProfit;
+    }
+
+    public double getAverageProfit() {
+        double sum = 0;
+        for (Double profit : profits) {
+            sum += profit;
+        }
+        return sum/profits.size();
     }
 
     public Net getNet() {
