@@ -2,6 +2,8 @@ package com.dimitri.ebrnn.evolution;
 
 import com.dimitri.ebrnn.Trading.TickerDataParser;
 import com.dimitri.ebrnn.Trading.TraderNet;
+import com.dimitri.ebrnn.neural.IO;
+import com.dimitri.ebrnn.neural.Net;
 
 import java.awt.*;
 import java.io.File;
@@ -33,6 +35,11 @@ public class Evolution {
     }
 
     public void update(){
+        feed();
+        System.out.println("Average Profit: " + getAverageProfit());
+        save();
+        System.out.println("Saved!");
+        makeOffspring();
         for (int i = 0; i < 10; i++) {
             feed();
             System.out.println("Average Profit: " + getAverageProfit());
@@ -54,10 +61,12 @@ public class Evolution {
 
     public void save(){
         ArrayList<TraderNet> top10 = getBestTraderNets();
-        traderNets.removeAll(traderNets);
         for (int i = 0; i < top10.size(); i++) {
             try {
-                top10.get(i).getNet().getIo().Write("weights/"+ i+".txt", top10.get(i).getNet());
+                Net net = top10.get(i).getNet();
+                IO io = net.getIo();
+                io.Write("weights/"+ i + ".txt",  net);
+//                top10.get(i).getNet().getIo().Write("weights/"+ i + ".txt", top10.get(i).getNet());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
