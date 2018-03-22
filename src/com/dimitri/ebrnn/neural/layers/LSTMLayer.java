@@ -6,7 +6,7 @@ import com.dimitri.ebrnn.neural.cells.lstm.LSTMCell;
 
 public class LSTMLayer extends Layer{
 
-    private LSTMCell[] cell;
+    private final LSTMCell[] cell;
 
     public LSTMLayer(Net net, int layerIndex, int cellAmount) {
         super(net, layerIndex, cellAmount);

@@ -12,7 +12,7 @@ public class Fibonacci {
 
     private int count;
 
-    private ArrayList<Candle> candles;
+    private final ArrayList<Candle> candles;
     private int current;
 
     private double low;
@@ -23,11 +23,12 @@ public class Fibonacci {
     private double buyTarget;
     private double sellTarget;
 
-    private int minCount;
-    private int maxCount;
-    private double interestPercentage;
+    private final int minCount;
+    private final int maxCount;
+    private final double interestPercentage;
 
-    private double buy, sell;
+    private final double buy;
+    private final double sell;
 
     public Fibonacci(){
         candles = new ArrayList<>();

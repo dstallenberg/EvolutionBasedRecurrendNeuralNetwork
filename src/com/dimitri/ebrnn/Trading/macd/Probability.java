@@ -2,11 +2,9 @@ package com.dimitri.ebrnn.Trading.macd;
 
 import com.dimitri.ebrnn.Trading.general.deviations.StandardDeviation;
 
-import java.awt.*;
-
 public class Probability {
 
-    private StandardDeviation standardDeviation;
+    private final StandardDeviation standardDeviation;
     private double currentValue;
     private double valueProbability;
 

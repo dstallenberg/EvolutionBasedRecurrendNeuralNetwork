@@ -5,15 +5,15 @@ import java.util.List;
 
 public class BowList {
 
-    private List<Bow> bowList;
+    private final List<Bow> bowList;
 
-    private List<Double> bowLength;
-    private List<Double> bowHighest;
-    private List<Double> bowHighestPlace;
+    private final List<Double> bowLength;
+    private final List<Double> bowHighest;
+    private final List<Double> bowHighestPlace;
 
-    private List<Double> bowHighestPrice;
+    private final List<Double> bowHighestPrice;
 
-    private List<Boolean> bowPositive;
+    private final List<Boolean> bowPositive;
 
     public BowList(){
         this.bowList = new ArrayList<>();

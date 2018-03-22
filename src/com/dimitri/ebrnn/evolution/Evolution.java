@@ -10,49 +10,49 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
 
 
 public class Evolution {
 
-    private int TraderNetCount = 0;
-    private int inputAmount;
-    private int outputAmount;
+    private final int inputAmount;
+    private final int outputAmount;
+    private final int totalNets;
 
-    private ArrayList<TraderNet> traderNets;
-    private ArrayList<Double> profits;
+    private final ArrayList<TraderNet> traderNets;
+    private final ArrayList<Double> profits;
+    private final ArrayList<Integer> positives;
+    private final ArrayList<Integer> zeros;
+    private final ArrayList<Integer> negatives;
 
-    private Random random;
+    private final Random random;
 
-    public Evolution(int inputAmount, int outputAmount){
+    public Evolution(int inputAmount, int outputAmount, int totalNets){
         this.inputAmount = inputAmount;
         this.outputAmount = outputAmount;
-        traderNets = new ArrayList<>();
-        profits = new ArrayList<>();
+        this.totalNets = totalNets;
+        traderNets = new ArrayList<>(100);
+        profits = new ArrayList<>(100);
+        positives = new ArrayList<>();
+        zeros = new ArrayList<>();
+        negatives = new ArrayList<>();
         random = new Random();
-        initRandomTraderNets(8, 2, 100);
+        initRandomTraderNets(inputAmount, outputAmount, totalNets);
+//        try {
+//            initOldTraderNets();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        makeOffspring(traderNets);
     }
 
     public void update(){
         feed();
-        System.out.println("Average Profit: " + getAverageProfit());
+        getAverageProfit();
         save();
-        System.out.println("Saved!");
-        makeOffspring();
-        for (int i = 0; i < 10; i++) {
-            feed();
-            System.out.println("Average Profit: " + getAverageProfit());
-            makeOffspring();
-            System.out.println("Mutated!");
-        }
-        feed();
-        System.out.println("Average Profit: " + getAverageProfit());
-        save();
-        System.out.println("Saved!");
-        makeOffspring();
-        System.out.println("Mutated!");
-
+        makeOffspring(getBestTraderNets());
     }
 
     public void render(Graphics g){
@@ -64,56 +64,164 @@ public class Evolution {
         for (int i = 0; i < top10.size(); i++) {
             try {
                 Net net = top10.get(i).getNet();
-                IO io = net.getIo();
-                io.Write("weights/"+ i + ".txt",  net);
-//                top10.get(i).getNet().getIo().Write("weights/"+ i + ".txt", top10.get(i).getNet());
+                IO io = new IO("weights/"+ i + ".txt");
+                io.Write(net);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
+        System.out.println("Saved!");
     }
 
     public double getAverageProfit(){
         double sum = 0;
-        for (int i = 0; i < traderNets.size(); i++) {
-            sum += traderNets.get(i).getAverageProfit();
+        for (TraderNet traderNet : traderNets) {
+            sum += traderNet.getAverageProfit();
         }
-        return sum/traderNets.size();
+        double avg = sum/traderNets.size();
+        System.out.println("Average Profit: " + avg);
+        return avg;
     }
 
-    public void makeOffspring(){
-        ArrayList<TraderNet> top10 = getBestTraderNets();
+    public void makeOffspring(ArrayList<TraderNet> top){
+        ArrayList<TraderNet> topNets = new ArrayList<>();
+        topNets.addAll(top);
         traderNets.removeAll(traderNets);
-        if(top10.size() == 0){
-            initRandomTraderNets(8, 2, 100);
+        if(topNets.size() == 0){
+            initRandomTraderNets(inputAmount, outputAmount, totalNets);
         }else{
-            for (TraderNet top: top10) {
-                for (int i = 0; i < Math.floor(100d/top10.size())-1; i++) {
-                    traderNets.add(new TraderNet(top.mutate()));
+            for (TraderNet t: topNets) {
+                traderNets.add(t);
+                for (int i = 0; i < Math.floor(totalNets/topNets.size())-1; i++) {
+                    traderNets.add(new TraderNet(t.mutate()));
                 }
-                traderNets.add(top);
             }
         }
-
+        System.out.println("Mutated!");
     }
     
     public ArrayList<TraderNet> getBestTraderNets(){
-        ArrayList<TraderNet> top10 = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        ArrayList<TraderNet> topNets = new ArrayList<>();
+
+        // Point system
+        HashMap<TraderNet, Integer> profitRanking = new HashMap<>();
+        HashMap<TraderNet, Integer> positivesRanking = new HashMap<>();
+        HashMap<TraderNet, Integer> totalDivNegativesRanking = new HashMap<>();
+        HashMap<TraderNet, Integer> positiveTradesRanking = new HashMap<>();
+        HashMap<TraderNet, Integer> positiveTradesDivTotalRanking = new HashMap<>();
+
+        ArrayList<TraderNet> tempList = new ArrayList<>();
+
+        // Profit Rankings
+        int initialSize = traderNets.size();
+        for (int i = 0; i < initialSize; i++) {
             int index = 0;
             double highest = Integer.MIN_VALUE;
             for (int j = 0; j < traderNets.size(); j++) {
-                if(traderNets.get(j).getAverageProfit() > highest){
+                if(highest < traderNets.get(j).getAverageProfit()){
+                    index = j;
                     highest = traderNets.get(j).getAverageProfit();
+                }
+            }
+            profitRanking.put(traderNets.get(index), i);
+            tempList.add(traderNets.remove(index));
+        }
+
+        // Positives Rankings
+        for (int i = 0; i < initialSize; i++) {
+            int index = 0;
+            int mostPositives = Integer.MIN_VALUE;
+            for (int j = 0; j < tempList.size(); j++) {
+                if(mostPositives < tempList.get(j).getPositives()){
+                    index = j;
+                    mostPositives = tempList.get(j).getPositives();
+                }
+            }
+            positivesRanking.put(tempList.get(index), i);
+            traderNets.add(tempList.remove(index));
+        }
+
+        // Total divided by Negatives Rankings
+        for (int i = 0; i < initialSize; i++) {
+            int index = 0;
+            double bestRating = Integer.MAX_VALUE;
+            for (int j = 0; j < traderNets.size(); j++) {
+                TraderNet t = traderNets.get(j);
+                double rating = t.getNegatives()/(t.getNegatives()+t.getPositives()+t.getZero());
+                if(bestRating > rating){
+                    bestRating = rating;
                     index = j;
                 }
             }
-            if(traderNets.get(index).getAverageProfit() > 0){
-                top10.add(traderNets.get(index));
-            }
-            traderNets.remove(index);
+            totalDivNegativesRanking.put(traderNets.get(index), i);
+            tempList.add(traderNets.remove(index));
         }
-        return top10;
+
+        for (int i = 0; i < initialSize; i++) {
+            int index = 0;
+            double mostPos = Integer.MIN_VALUE;
+            for (int j = 0; j < tempList.size(); j++) {
+                if(mostPos < tempList.get(j).getPositivesTrades()){
+                    mostPos = tempList.get(j).getPositivesTrades();
+                    index = j;
+                }
+            }
+            positiveTradesRanking.put(tempList.get(index), i);
+            traderNets.add(tempList.remove(index));
+        }
+
+
+        // Positive trades divided by Total trades
+        for (int i = 0; i < initialSize; i++) {
+            int index = 0;
+            double bestRating = Integer.MIN_VALUE;
+            for (int j = 0; j < traderNets.size(); j++) {
+                TraderNet t = traderNets.get(j);
+                if(t.getTotalTrades() != 0){
+                    double rating = t.getPositivesTrades()/t.getTotalTrades();
+                    if(bestRating < rating){
+                        bestRating = rating;
+                        index = j;
+                    }
+                }
+            }
+            positiveTradesDivTotalRanking.put(traderNets.get(index), i);
+            tempList.add(traderNets.remove(index));
+        }
+
+        for (int i = 0; i < tempList.size(); i++) {
+            traderNets.add(tempList.remove(i));
+        }
+
+        // Sum all the rankings with optional weight
+        // then compare and select the best one's
+        for (int i = 0; i < 10; i++) {
+            TraderNet bestNet = traderNets.get(0);
+            double best = Integer.MAX_VALUE-100000;
+            for (TraderNet net: profitRanking.keySet()) {
+                double total = profitRanking.get(net);
+                total += positivesRanking.get(net)*4;
+                total += totalDivNegativesRanking.get(net);
+                total += positiveTradesRanking.get(net)*2;
+                total += positiveTradesDivTotalRanking.get(net)*3;
+
+
+                if(total < best){
+                    best = total;
+                    bestNet = net;
+                }
+            }
+            profitRanking.remove(bestNet);
+            positivesRanking.remove(bestNet);
+            totalDivNegativesRanking.remove(bestNet);
+            positiveTradesDivTotalRanking.remove(bestNet);
+            topNets.add(bestNet);
+        }
+
+        for (int i = 0; i < topNets.size(); i++) {
+            System.out.println("Top performer: " + i + "\n\tPositives: " + topNets.get(i).getPositives() + "\n\tZeros: " + topNets.get(i).getZero() + "\n\tNegatives: " + topNets.get(i).getNegatives() + "\n\tProfit: " + String.format("%.5f", topNets.get(i).getAverageProfit()) + " %" + "\n\tPositive Trades: " + topNets.get(i).getPositivesTrades() + "\n\tTotal Trades: " + topNets.get(i).getTotalTrades());
+        }
+        return topNets;
     }
 
     public ArrayList<TickerDataParser> fetchData(){
@@ -143,14 +251,8 @@ public class Evolution {
             long last = System.nanoTime();
             System.out.println("NextNet: " + i);
             traderNets.get(i).feed(array);
-            System.out.println("Net "+ i +" fed! Time: " + (System.nanoTime()-last)/1000000 + " ms");
-            System.out.println("Profit: " + traderNets.get(i).getAverageProfit());
+            System.out.println("Net: " + i + "\n\tTime: " + (System.nanoTime()-last)/1000000 + " ms" + "\n\tPositives: " + traderNets.get(i).getPositives() + "\n\tZeros: " + traderNets.get(i).getZero() + "\n\tNegatives: " + traderNets.get(i).getNegatives() + "\n\tProfit: " + String.format("%.5f", traderNets.get(i).getAverageProfit()) + " %"  + "\n\tPositive Trades: " + traderNets.get(i).getPositivesTrades() + "\n\tTotal Trades: " + traderNets.get(i).getTotalTrades());
             profits.add(i, traderNets.get(i).getAverageProfit());
-//            try {
-//                traderNets.get(i).getNet().getIo().Write("weights/"+ i +".txt", traderNets.get(i).getNet());
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
         }
     }
 
@@ -164,12 +266,17 @@ public class Evolution {
             }
             topology[topology.length-1] = outputAmount;
             traderNets.add(new TraderNet(topology));
-            TraderNetCount++;
         }
+        System.out.println("Initialized: " + TraderNetAmount + " nets!");
     }
 
-    public void initOldTraderNets(String filePath){
-
+    public void initOldTraderNets() throws FileNotFoundException {
+        for (int i = 0; i < 10; i++) {
+            IO io = new IO("weights/1.0/" + i + ".txt");
+            io.Read();
+            traderNets.add(new TraderNet(new Net(io.getWeights())));
+            System.out.println("Old Net: " + i + " initialized!");
+        }
     }
 
 }

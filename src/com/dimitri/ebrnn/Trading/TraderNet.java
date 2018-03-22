@@ -13,15 +13,23 @@ import java.util.Random;
 
 public class TraderNet {
 
-    private Net net;
+    private final Net net;
 
     private double currentProfit;
     private ArrayList<Double> profits;
+    private int positives;
+    private int negatives;
+    private int zero;
+
+    private double BTCbeforeTrade;
+    private int positivesTrades;
+    private int totalTrades;
+
     private double quantityCoin;
     private double BTC;
     private double startBTC;
 
-    private Random random;
+    private final Random random;
 
     public TraderNet(int[] topology){
         net = new Net(topology);
@@ -31,6 +39,13 @@ public class TraderNet {
         BTC = 1;
         startBTC = BTC;
         random = new Random();
+        positives = 0;
+        negatives = 0;
+        zero = 0;
+
+        BTCbeforeTrade = 0;
+        positivesTrades = 0;
+        totalTrades = 0;
     }
 
     public TraderNet(Net net){
@@ -41,10 +56,30 @@ public class TraderNet {
         BTC = 1;
         startBTC = BTC;
         random = new Random();
+        positives = 0;
+        negatives = 0;
+        zero = 0;
+
+        BTCbeforeTrade = 0;
+        positivesTrades = 0;
+        totalTrades = 0;
     }
 
-
     public void feed(ArrayList<TickerDataParser> array){
+        profits = new ArrayList<>();
+        currentProfit = 0;
+        quantityCoin = 0;
+        BTC = 1;
+        startBTC = BTC;
+
+        positives = 0;
+        negatives = 0;
+        zero = 0;
+
+        BTCbeforeTrade = 0;
+        positivesTrades = 0;
+        totalTrades = 0;
+
         for (TickerDataParser t: array) {
 
             currentProfit = 0;
@@ -91,36 +126,87 @@ public class TraderNet {
 
                     net.feedForward(input);
 
-                    double[] output = net.getOutput();
-
-                    if(output[0] > 0.5d && output[1] > 0.5d){
-                        if(quantityCoin > 0){
-                            sell(candle.getCurrent());
-                        }else{
-                            buy(candle.getCurrent());
-                        }
-                    }else if(output[0] > 0.5d){
-                        if(quantityCoin > 0){
-                            sell(candle.getCurrent());
-                        }
-                    }else if(output[1] > 0.5d){
-                        if(quantityCoin == 0){
-                            buy(candle.getCurrent());
-                        }
-                    }
-
                     currentProfit = (((BTC+quantityCoin*candle.getCurrent())-startBTC)/startBTC)*100;
                     if(currentProfit < -100){
                         break;
                     }
+
+                    double[] output = net.getOutput();
+
+                    // output[0] means buy
+                    // output[1] means nothing
+                    // sell when profit
+
+                    if(output[0] > output[1]){
+                        if(quantityCoin == 0){
+                            buy(candle.getCurrent());
+                        }else{
+                            // Do nothing
+                        }
+                    }else{
+                        if(quantityCoin > 0){
+                            if(currentProfit > 5 || currentProfit < -5){
+                                sell(candle.getCurrent());
+                            }
+                        }else{
+                            // Do nothing
+                        }
+                    }
+
+
+
+
+                    // maybe should be with 3 outputs
+                    // output[0] means buy
+                    // output[1] means sell
+                    // output[2] means do nothing
+//                    if(output[0] > output[1]){
+//                        if(output[0] > output[2]){
+//                            if(quantityCoin == 0){
+//                                buy(candle.getCurrent());
+//                            }
+//                        }
+//                    }else{
+//                        if(output[1] > output[2]){
+//                            if(quantityCoin > 0){
+//                                sell(candle.getCurrent());
+//                            }
+//                        }
+//                    }
+
+
+//                    if(output[0] > 0.5d && output[1] > 0.5d){
+//                        if(quantityCoin > 0){
+//                            sell(candle.getCurrent());
+//                        }else{
+//                            buy(candle.getCurrent());
+//                        }
+//                    }else if(output[0] > 0.5d){
+//                        if(quantityCoin > 0){
+//                            sell(candle.getCurrent());
+//                        }
+//                    }else if(output[1] > 0.5d){
+//                        if(quantityCoin == 0){
+//                            buy(candle.getCurrent());
+//                        }
+//                    }
+
+
                 }
             }
             profits.add(currentProfit);
+            if(currentProfit > 0){
+                positives++;
+            }else if(currentProfit < 0){
+                negatives++;
+            }else{
+                zero++;
+            }
         }
     }
 
     public void buy(double price){
-
+        BTCbeforeTrade = BTC;
         double quantity = Math.floor(BTC/price);
 
         if(quantity == 0){
@@ -137,6 +223,13 @@ public class TraderNet {
 //        BTC = BTC + (price*quantityCoin);
         BTC = BTC + (price*quantityCoin*0.98d);
         quantityCoin = 0;
+
+        double tradeProfit = ((BTC-BTCbeforeTrade)/BTCbeforeTrade)*100;
+
+        if(tradeProfit >= 0){
+            positivesTrades++;
+        }
+        totalTrades++;
     }
 
     public Net mutate(){
@@ -174,5 +267,25 @@ public class TraderNet {
 
     public Random getRandom() {
         return random;
+    }
+
+    public int getPositives() {
+        return positives;
+    }
+
+    public int getNegatives() {
+        return negatives;
+    }
+
+    public int getZero() {
+        return zero;
+    }
+
+    public int getPositivesTrades() {
+        return positivesTrades;
+    }
+
+    public int getTotalTrades() {
+        return totalTrades;
     }
 }

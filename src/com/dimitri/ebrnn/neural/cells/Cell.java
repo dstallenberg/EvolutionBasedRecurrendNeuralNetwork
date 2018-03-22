@@ -4,8 +4,8 @@ import com.dimitri.ebrnn.neural.layers.Layer;
 
 public abstract class Cell {
 
-    private Layer layer;
-    private int cellIndex;
+    private final Layer layer;
+    private final int cellIndex;
 
     private double output;
 

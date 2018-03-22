@@ -5,7 +5,7 @@ import com.dimitri.ebrnn.neural.cells.HiddenCell;
 
 public class HiddenLayer extends Layer{
 
-    private HiddenCell[] cell;
+    private final HiddenCell[] cell;
 
     public HiddenLayer(Net net, int layerIndex, int cellAmount) {
         super(net, layerIndex, cellAmount);

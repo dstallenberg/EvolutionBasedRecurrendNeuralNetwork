@@ -6,8 +6,8 @@ import com.dimitri.ebrnn.neural.layers.Layer;
 
 public class Gate {
 
-    private Connection[] connection;
-    private Connection[] recurrentConnection;
+    private final Connection[] connection;
+    private final Connection[] recurrentConnection;
 
     public Gate(int inputAmount, int recurrentAmount){
         this.connection = new Connection[inputAmount];

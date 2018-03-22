@@ -2,7 +2,7 @@ package com.dimitri.ebrnn.Trading.general.deviations;
 
 public class MeanAbsoluteDeviation {
 
-    private double[] data;
+    private final double[] data;
     private int size;
 
     private double sum;

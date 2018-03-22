@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class IO {
 
-    private String filePath;
+    private final String filePath;
     private double[][][][] weights;
 
     public IO(String filePath){
@@ -20,93 +20,70 @@ public class IO {
         weights = count(file);
         Scanner scanner = new Scanner(file);
 
-        int layer = 0;
+        int layer = 1;
         int neuron = 0;
         int gate = 0;
         int weight = 0;
 
-        if(scanner.hasNext()){
-            String current = scanner.next();
-            while(scanner.hasNext()){
-                current = scanner.next();
-                while(!current.equals("Layer:") && scanner.hasNext()){
-                    current = scanner.next();
-                    while(!current.equals("Neuron:") && !current.equals("Layer:")){
-                        current = scanner.next();
-                        while(!current.equals("Gate:") && !current.equals("Neuron:") && !current.equals("Layer:")){
-                            weights[layer][neuron][gate][weight] = Double.parseDouble(current);
-                            weight++;
-                            if(scanner.hasNext()){
-                                current = scanner.next();
-                            }else{
-                                break;
-                            }
-                        }
-                        weight = 0;
-                        gate++;
-                    }
-                    gate = 0;
-                    neuron++;
-                }
-                neuron = 0;
-                layer++;
+        String current;
+        scanner.next(); //skip first layer
+        // skip whole first layer
+        while(scanner.hasNext()){
+            current = scanner.next();
+            if(current.equals("Layer:")){
+                break;
             }
+        }
+        scanner.next(); //skip first neuron
+        scanner.next(); //skip first gate
+
+        while(scanner.hasNext()){
+            current = scanner.next();
+            if(current.equals("Layer:")){
+                neuron = 0;
+                gate = 0;
+                weight = 0;
+                layer++;
+                scanner.next(); //skip first neuron
+                scanner.next(); //skip first gate
+            }else if(current.equals("Neuron:")){
+                gate = 0;
+                weight = 0;
+                neuron++;
+                scanner.next(); //skip first gate
+            }else if(current.equals("Gate:")){
+                weight = 0;
+                gate++;
+            }else{
+                weights[layer][neuron][gate][weight] = Double.parseDouble(current);
+                weight++;
+            }
+
         }
 
         scanner.close();
     }
 
-    public void Write(String filePath, Net net) throws FileNotFoundException {
+    public void Write(Net net) throws FileNotFoundException {
         PrintWriter printWriter = new PrintWriter(filePath);
-        double[][][][] weights = getWeights();
+        double[][][][] weights = net.getWeights();
+
+        if(weights.length == 0){
+            throw new FileNotFoundException("NO WEIGHTS!");
+        }
 
         for (int i = 0; i < weights.length; i++) {
             printWriter.print("Layer:\n");
             for (int j = 0; j < weights[i].length; j++) {
                 printWriter.print("\tNeuron:\n");
                 for (int k = 0; k < weights[i][j].length; k++) {
-                    printWriter.print("\tGate:\n");
+                    printWriter.print("\t\tGate:\n");
                     for (int l = 0; l < weights[i][j][k].length; l++) {
-                        printWriter.print("\t\t" + weights[i][j][k][l] + "\n");
+                        printWriter.print("\t\t\t" + weights[i][j][k][l] + "\n");
                     }
                 }
             }
         }
-
-
-
-//        for (int layer = 0; layer < net.getLayer().length; layer++) {
-//            printWriter.print("Layer:\n");
-//            for (int neuron = 0; neuron < net.getLayer(layer).getCell().length; neuron++) {
-//                printWriter.print("\tNeuron:\n");
-//                for (int gate = 0; gate < 4; gate++) {
-//                    printWriter.print("\tGate:\n");
-//                    for (int weight = 0; weight < ((LSTMCell)net.getLayer(layer).getCell(neuron)).getConnection().length; weight++) {
-//                        if(gate == 0){
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getConnection(weight).getWeight() + "\n");
-//                        }else if(gate == 1){
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getInputGate().getConnection(weight).getWeight() + "\n");
-//                        }else if(gate == 2){
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getForgetGate().getConnection(weight).getWeight() + "\n");
-//                        }else{
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getOutputGate().getConnection(weight).getWeight() + "\n");
-//                        }
-//                    }
-//                    for (int recurrentWeight = 0; recurrentWeight < ((LSTMCell)net.getLayer(layer).getCell(neuron)).getRecurrentConnection().length; recurrentWeight++) {
-//                        if(gate == 0){
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getRecurrentConnection(recurrentWeight).getWeight() + "\n");
-//                        }else if(gate == 1){
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getInputGate().getRecurrentConnection(recurrentWeight).getWeight() + "\n");
-//                        }else if(gate == 2){
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getForgetGate().getRecurrentConnection(recurrentWeight).getWeight() + "\n");
-//                        }else{
-//                            printWriter.print("\t\t" + ((LSTMCell)net.getLayer(layer).getCell(neuron)).getOutputGate().getRecurrentConnection(recurrentWeight).getWeight() + "\n");
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         printWriter.close();
     }
 
@@ -120,50 +97,95 @@ public class IO {
                 layers++;
             }
         }
+
         double[][][][] weights = new double[layers][][][];
 
         scanner = new Scanner(file);
-        current = scanner.next();
-        for (int i = 0; i < weights.length; i++) {
+        scanner.next(); // skip first layer
 
-            int neurons = 0;
+        layers = 0;
+        int neuron = 0;
+        while(scanner.hasNext()){
             current = scanner.next();
-            while (!current.equals("Layer:")){
-                if(current.equals("Neuron:")){
-                    neurons++;
-                }
-                if(scanner.hasNext()){
-                    current = scanner.next();
-                }else{
-                    break;
-                }
+            if(current.equals("Layer:")){
+                weights[layers] = new double[neuron][][];
+                layers++;
+                neuron = 0;
+            }else if(current.equals("Neuron:")){
+                neuron++;
             }
-
-            weights[i] = new double[neurons][][];
         }
+        weights[layers] = new double[neuron][][];
 
         scanner = new Scanner(file);
-        current = scanner.next();
-        for (int i = 0; i < weights.length;i++) {
+        scanner.next(); // skip first layer
+        scanner.next(); // skip first neuron
+
+        layers = 0;
+        neuron = 0;
+        int gate = 0;
+        while(scanner.hasNext()){
             current = scanner.next();
-            for (int j = 0; j < weights[i].length; j++) {
-                current = scanner.next();
-                weights[i][j] = new double[8][]; // (3 gates + 1 input)*2  (recurrent and normal)
-                for (int k = 0; k < weights[i][j].length; k++) {
-                    current = scanner.next();
-                    int weight = 0;
-                    while(!current.equals("Neuron:") && !current.equals("Layer:")) {
-                        weight++;
-                        if (scanner.hasNext()) {
-                            current = scanner.next();
-                        } else {
-                            break;
-                        }
-                    }
-                    weights[i][j][k] = new double[weight];
-                }
+            if(current.equals("Layer:")){
+                weights[layers][neuron] = new double[gate][];
+                layers++;
+                neuron = 0;
+                gate = 0;
+                scanner.next(); // skip first neuron
+            }else if(current.equals("Neuron:")){
+                weights[layers][neuron] = new double[gate][];
+                neuron++;
+                gate = 0;
+            }else if(current.equals("Gate:")){
+                gate++;
             }
         }
+
+        weights[layers][neuron] = new double[gate][];
+
+        scanner = new Scanner(file);
+        scanner.next(); // skip first layer
+        // skip whole first layer
+        while(scanner.hasNext()){
+            current = scanner.next();
+            if(current.equals("Layer:")){
+                break;
+            }
+        }
+        scanner.next(); // skip first neuron
+        scanner.next(); // skip first gate
+
+        layers = 1;
+        neuron = 0;
+        gate = 0;
+        int weight = 0;
+        while(scanner.hasNext()){
+            current = scanner.next();
+            if(current.equals("Layer:")){
+                weights[layers][neuron][gate] = new double[weight];
+                layers++;
+                neuron = 0;
+                gate = 0;
+                weight = 0;
+                scanner.next(); // skip first neuron
+                scanner.next(); // skip first gate
+            }else if(current.equals("Neuron:")){
+                weights[layers][neuron][gate] = new double[weight];
+                neuron++;
+                gate = 0;
+                weight = 0;
+                scanner.next(); // skip first gate
+            }else if(current.equals("Gate:")){
+                weights[layers][neuron][gate] = new double[weight];
+                gate++;
+                weight = 0;
+            }else{
+                weight++;
+            }
+        }
+
+        weights[layers][neuron][gate] = new double[weight];
+
         return weights;
     }
 

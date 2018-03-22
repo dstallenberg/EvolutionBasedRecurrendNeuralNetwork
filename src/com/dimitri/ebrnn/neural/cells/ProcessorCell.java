@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class ProcessorCell {
 
-    private static double e = 2.71828182846d;
+    private static final double e = 2.71828182846d;
 
     public static double ownTanh(double input){
         double neg = Math.pow(e, 2*input);

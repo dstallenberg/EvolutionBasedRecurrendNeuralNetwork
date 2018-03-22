@@ -5,9 +5,9 @@ import com.dimitri.ebrnn.neural.cells.Cell;
 
 public abstract class Layer {
 
-    private Net net;
-    private int layerIndex;
-    private int cellAmount;
+    private final Net net;
+    private final int layerIndex;
+    private final int cellAmount;
 
     public Layer(Net net, int layerIndex, int cellAmount){
         this.net = net;
@@ -24,5 +24,9 @@ public abstract class Layer {
 
     public int getLayerIndex() {
         return layerIndex;
+    }
+
+    public int getCellAmount() {
+        return cellAmount;
     }
 }

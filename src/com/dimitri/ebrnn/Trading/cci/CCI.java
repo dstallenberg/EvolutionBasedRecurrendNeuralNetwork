@@ -8,23 +8,23 @@ import com.dimitri.ebrnn.Trading.general.deviations.MeanAbsoluteDeviation;
 public class CCI {
 
     private MeanAbsoluteDeviation meanAbsoluteDeviation;
-    private double[] prices;
-    private double[] highs;
-    private double[] lows;
+    private final double[] prices;
+    private final double[] highs;
+    private final double[] lows;
 
     private int current;
 
-    private double[] typicalPrice;
+    private final double[] typicalPrice;
     private int currentTypicalPrice;
 
-    private double[] SMA;
+    private final double[] SMA;
     private int currentSMA;
 
-    private double[] CCI;
+    private final double[] CCI;
     private int currentCCI;
 
-    private int SMAStepSize;
-    private int tradeInterval;
+    private final int SMAStepSize;
+    private final int tradeInterval;
 
     private double high;
     private double low;

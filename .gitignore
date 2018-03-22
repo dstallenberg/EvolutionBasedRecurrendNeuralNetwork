@@ -36,7 +36,7 @@ cmake-build-debug/
 
 # IntelliJ
 /out/
-/old/
+/weights/
 /textFiles/
 
 # mpeltonen/sbt-idea plugin

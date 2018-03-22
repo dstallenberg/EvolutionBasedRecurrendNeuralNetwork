@@ -8,12 +8,12 @@ import java.util.List;
 
 public class TimeGraph extends GraphicsObject{
 
-    private List<Double> xAxis;
-    private List<Double> yAxis;
+    private final List<Double> xAxis;
+    private final List<Double> yAxis;
     
     private int scaling = 1;
 
-    private String yAxisName;
+    private final String yAxisName;
     private long timer = 0;
     private long startTime = 0;
     private long timeSec = 0;

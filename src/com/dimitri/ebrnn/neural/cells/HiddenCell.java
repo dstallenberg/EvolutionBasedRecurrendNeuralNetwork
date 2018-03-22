@@ -7,7 +7,7 @@ public class HiddenCell extends Cell{
     private double eta = 0.01;
     private double alpha = 0.9;
 
-    private Connection[] connection;
+    private final Connection[] connection;
 
     private double gradient;
 

@@ -4,15 +4,15 @@ import java.util.List;
 
 public class Bow {
 
-    private List<Double> heights;
+    private final List<Double> heights;
 
-    private int length;
-    private double height;
-    private int highestPlace;
+    private final int length;
+    private final double height;
+    private final int highestPlace;
 
-    private double priceHighestPoint;
+    private final double priceHighestPoint;
 
-    private boolean positive;
+    private final boolean positive;
 
     public Bow(List<Double> heights, int length, double height, int highestPlace, double priceHighestPoint, boolean positive){
         this.length = length;

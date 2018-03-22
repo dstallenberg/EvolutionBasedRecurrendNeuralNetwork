@@ -50,11 +50,11 @@ public class Net {
     /**
      * The current error rate.
      */
-    private double error = 0;
+    private final double error = 0;
     /**
      * The recent average error rate.
      */
-    private double recentAverageError = 0;
+    private final double recentAverageError = 0;
     /**
      * The smoothing factor of which the average error rate is calculated. This lies between 0 and 1.
      */
@@ -140,7 +140,7 @@ public class Net {
                     for (int l = 0; l < weights[i][j][k].length; l++) {
                         int mutate = random.nextInt(oneInEvery_Neuron);
                         if(mutate == 0){
-                            double delta = (random.nextDouble()*2-1)*0.01;
+                            double delta = (random.nextDouble()*2-1)*0.1;
                             weights[i][j][k][l] = weights[i][j][k][l]+delta;
                         }
                     }

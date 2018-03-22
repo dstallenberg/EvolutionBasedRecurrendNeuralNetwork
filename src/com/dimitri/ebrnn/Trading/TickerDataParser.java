@@ -14,7 +14,7 @@ public class TickerDataParser {
 
     private String lastGivenTimestamp;
 
-    private String dataString;
+    private final String dataString;
 
     public TickerDataParser(String dataString) throws IOException {
         this.dataString = dataString;

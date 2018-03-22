@@ -6,9 +6,11 @@ import java.awt.*;
 
 public abstract class GraphicsObject {
 
-    private Net net;
-    private int x, y;
-    private int width, height;
+    private final Net net;
+    private final int x;
+    private final int y;
+    private final int width;
+    private final int height;
 
     public GraphicsObject(Net net, int x, int y, int width, int height){
         this.net = net;

@@ -7,7 +7,6 @@ import com.dimitri.ebrnn.Trading.general.Candle;
 import com.dimitri.ebrnn.Trading.macd.bows.Bow;
 import com.dimitri.ebrnn.Trading.macd.bows.BowList;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,22 +16,22 @@ public class MACD {
     private final double longLength;
     private final double signalLength;
 
-    private double[] lastPrices;
+    private final double[] lastPrices;
     private int current;
 
-    private double[] EMAShort;
+    private final double[] EMAShort;
     private int currentEMAShort;
 
-    private double[] EMALong;
+    private final double[] EMALong;
     private int currentEMALong;
 
-    private double[] MACD;
+    private final double[] MACD;
     private int currentMACD;
 
-    private double[] signal;
+    private final double[] signal;
     private int currentSignal;
 
-    private double[] tradeSignal;
+    private final double[] tradeSignal;
     private int currentTradeSignal;
     private double highestTradeSignal;
 
@@ -46,10 +45,10 @@ public class MACD {
     private int currentBowLengthCount;
     private int currentHighestPlace;
 
-    private double[] movingAverage;
+    private final double[] movingAverage;
     private int currentMovingAverage;
 
-    private List<String> lastChoices;
+    private final List<String> lastChoices;
     private String choice;
 
     private boolean rising;
@@ -101,7 +100,7 @@ public class MACD {
 
     }
 
-    public MACD(TickerDataParser tickerDataParser) throws Exception {
+    public MACD(TickerDataParser tickerDataParser) {
         this.shortLength = 12;
         this.longLength = 26;
         this.signalLength = 9;

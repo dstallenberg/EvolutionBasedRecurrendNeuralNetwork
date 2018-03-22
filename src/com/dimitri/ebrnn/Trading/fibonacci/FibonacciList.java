@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class FibonacciList {
 
-    private ArrayList<Fibonacci> fibonacciList;
+    private final ArrayList<Fibonacci> fibonacciList;
 
     public FibonacciList(){
         fibonacciList = new ArrayList<>();

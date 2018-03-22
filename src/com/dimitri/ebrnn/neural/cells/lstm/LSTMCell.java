@@ -7,12 +7,12 @@ import com.dimitri.ebrnn.neural.layers.Layer;
 
 public class LSTMCell extends Cell {
 
-    private Connection[] connection;
-    private Connection[] recurrentConnection;
+    private final Connection[] connection;
+    private final Connection[] recurrentConnection;
 
-    private Gate inputGate;
-    private Gate forgetGate;
-    private Gate outputGate;
+    private final Gate inputGate;
+    private final Gate forgetGate;
+    private final Gate outputGate;
 
     private double forgetGateMemory;
 

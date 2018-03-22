@@ -5,7 +5,7 @@ import com.dimitri.ebrnn.neural.cells.InputCell;
 
 public class InputLayer extends Layer{
 
-    private InputCell[] cell;
+    private final InputCell[] cell;
 
     public InputLayer(Net net, int cellAmount) {
         super(net, 0, cellAmount);
